@@ -40,7 +40,7 @@ public class BalanceServiceTest {
     }
 
     @Test
-    public void userBalanceTest() throws Exception{
+    public void whenBalanceIsCorrectThenReturnBalanceIsCorrect() throws Exception{
         when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
         BalanceResponse response = balanceService.getUserBalance(request);
         assertAll(
@@ -49,7 +49,7 @@ public class BalanceServiceTest {
     }
 
     @Test
-    public void allBalanceTest() {
+    public void whenAllBalanceIsCorrectThenReturnListOfBalanceIsCorrect() {
         when(walletService.getAllWallets()).thenReturn(List.of(wallet));
         AllBalanceResponse response = balanceService.getAllBalance();
         assertAll(
@@ -60,12 +60,10 @@ public class BalanceServiceTest {
     }
 
     @Test
-    public void userBalanceThrowsUserNotFoundExceptionTest() throws UserNotFoundException {
+    public void whenUserNotFoundThenThrowsUserNotFoundException() throws UserNotFoundException {
         when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () -> balanceService.getUserBalance(request));
     }
-
-
 
 
 }

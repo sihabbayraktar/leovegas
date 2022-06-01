@@ -44,14 +44,14 @@ public class WalletServiceTest {
     }
 
     @Test
-    public void allWalletsTest() {
+    public void whenAllWalletsAreCorrectThenReturnAllWallets() {
         when(walletRepository.findAll()).thenReturn(List.of(wallet));
         List<Wallet> allWallets = walletService.getAllWallets();
         assertAll(() ->  assertFalse(allWallets.isEmpty()));
     }
 
     @Test
-    public void userWalletsByIdTest() throws Exception {
+    public void whenWalletsUserIsExistThenReturnBalanceIsCorrect() throws Exception {
         when(walletRepository.findByUserId(anyLong())).thenReturn(Optional.ofNullable(wallet));
         Wallet userWalletById = walletService.getUserWalletById(1L);
         assertAll(() -> assertNotNull(userWalletById),
@@ -59,13 +59,13 @@ public class WalletServiceTest {
     }
 
     @Test
-    public void userWalletThrowUserNotFoundExceptionTest() {
+    public void whenUserIsNotFoundThenThrowsUserNotFoundException() {
         when(walletRepository.findByUserId(anyLong())).thenReturn(Optional.empty());
         assertThrows(UserNotFoundException.class, ()->walletService.getUserWalletById(1L));
     }
 
     @Test
-    public void saveWalletTest() {
+    public void whenWalletIsSavedThenReturnCorrectWallet() {
         Transaction transaction = Transaction.builder().amount(BigDecimal.valueOf(100L))
                 .transactionType(TransactionType.CREDIT)
                 .id(1L)

@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class WalletControllerTest {
+public class WalletResourceTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,7 +28,7 @@ public class WalletControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void userBalanceTest() throws Exception {
+    public void whenUserWalletIsExistThenReturnExpectedBalanceIsCorrect() throws Exception {
         BalanceRequest request = new BalanceRequest(1L);
         mockMvc.perform(get("/wallet/userbalance")
         .contentType(APPLICATION_JSON_VALUE)
@@ -38,7 +38,7 @@ public class WalletControllerTest {
     }
 
     @Test
-    public void userBalanceThrowsException() throws Exception {
+    public void whenUserIsNotExistThenThrowsUserNotFoundException() throws Exception {
         BalanceRequest request = new BalanceRequest(5L);
         mockMvc.perform(get("/wallet/userbalance")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -49,7 +49,7 @@ public class WalletControllerTest {
     }
 
     @Test
-    public void allbalanceTest() throws Exception{
+    public void whenAllBalancesAreExistThenReturnExpectedBalanceList() throws Exception{
         mockMvc.perform(get("/wallet/allbalance")
         .accept(APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -63,15 +63,15 @@ public class WalletControllerTest {
     }
 
     @Test
-    public void validityErrorTest() throws Exception {
+    public void whenBalanceRequestIsNotInWantedFormThenThrowsValidityError() throws Exception {
         BalanceRequest request = new BalanceRequest();
         mockMvc.perform(get("/wallet/userbalance")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.userId").value("user id cannot be null"));
-
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("userId"))
+                .andExpect(jsonPath("$.errors[0].message").value("user id cannot be null"));
     }
 
 

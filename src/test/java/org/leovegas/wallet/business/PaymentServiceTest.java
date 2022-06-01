@@ -40,13 +40,13 @@ public class PaymentServiceTest {
     private Wallet wallet;
     private Transaction debitTransaction;
     private Transaction creditTransaction;
-    private UserDebitRequest balanceInsufficientDebitRequest;
+    //private UserDebitRequest balanceInsufficientDebitRequest;
 
     @BeforeEach
-    void setup() {
+    public void setup() {
         debitRequest = new UserDebitRequest(1L, BigDecimal.valueOf(100L), 2L);
         creditRequest = new UserCreditRequest(1L, BigDecimal.valueOf(100L), 3L);
-        balanceInsufficientDebitRequest = new UserDebitRequest(1L, BigDecimal.valueOf(500L), 5L);
+        //balanceInsufficientDebitRequest = new UserDebitRequest(1L, BigDecimal.valueOf(500L), 5L);
 
         wallet = new Wallet();
         wallet.setId(1L);
@@ -65,7 +65,7 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void debitTest() throws Exception{
+    public void whenDebitIsCorrectThenReturnBalanceIsCorrect() throws Exception{
         when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
         UserDebitResponse response = paymentService.debit(debitRequest);
         assertAll(
@@ -76,20 +76,20 @@ public class PaymentServiceTest {
 
 
     @Test
-    public void debitNonUniqueTransactionExceptionTest() {
+    public void whenDebitTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
         when(transactionService.getTransactionById(anyLong())).thenReturn(debitTransaction);
         assertThrows(NonUniqueTransactionException.class, () -> paymentService.debit(debitRequest));
 
     }
 
     @Test
-    public void debitUserNotFoundExceptionTest() throws Exception {
+    public void whenDebitUserIsNotFoundThenThrowsUserNotFoundException() throws Exception {
         when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () ->paymentService.debit(debitRequest));
     }
 
     @Test
-    public void creditTest() throws Exception {
+    public void whenCreditIsCorrectThenReturnBalanceIsCorrect() throws Exception {
         when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
         UserCreditResponse response = paymentService.credit(creditRequest);
         assertAll(
@@ -98,13 +98,13 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void creditNonUniqueTransactionExceptionTest() {
+    public void whenCreditTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
         when(transactionService.getTransactionById(anyLong())).thenReturn(creditTransaction);
         assertThrows(NonUniqueTransactionException.class, () -> paymentService.credit(creditRequest));
     }
 
     @Test
-    public void creditUserNotFoundExceptionTest() throws Exception {
+    public void whenCreditUserIsNotFoundThenThrowsUserNotFoundException() throws Exception {
         when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () -> paymentService.credit(creditRequest));
     }

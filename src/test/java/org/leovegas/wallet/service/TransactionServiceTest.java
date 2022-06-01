@@ -1,7 +1,8 @@
 package org.leovegas.wallet.service;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.repository.TransactionRepository;
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransactionServiceTest {
 
    @Mock
@@ -28,11 +30,11 @@ public class TransactionServiceTest {
 
    private Transaction transaction;
 
-   @BeforeEach
+   @BeforeAll
    public void setup() {
 
        transaction = new Transaction();
-       transaction.setId(1L);
+       transaction.setId(10L);
        transaction.setAmount(BigDecimal.valueOf(100L));
        transaction.setTransactionTime(new Date());
        transaction.setTransactionType(TransactionType.CREDIT);
@@ -40,9 +42,9 @@ public class TransactionServiceTest {
    }
 
    @Test
-   public void transactionByIdTest() {
+   public void whenTransactionIsCorrectThenReturnTransactionIsCorrect() {
        when(transactionRepository.findById(anyLong())).thenReturn(java.util.Optional.ofNullable(transaction));
-       Transaction transactionById = transactionService.getTransactionById(1L);
+       Transaction transactionById = transactionService.getTransactionById(10L);
        assertAll(
                () -> assertNotNull(transactionById),
                () -> assertEquals(transactionById.getAmount(), transaction.getAmount()),
@@ -52,7 +54,7 @@ public class TransactionServiceTest {
    }
 
    @Test
-   public void transactionSaveTest() {
+   public void whenTransactionIsSavedThenReturnNotNull() {
        when(transactionRepository.save(any())).thenReturn(transaction);
        assertAll(
                () -> assertNotNull(transaction)

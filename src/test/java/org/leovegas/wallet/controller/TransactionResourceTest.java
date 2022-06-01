@@ -2,9 +2,9 @@ package org.leovegas.wallet.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.exception.UserNotFoundException;
@@ -14,7 +14,6 @@ import org.leovegas.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TransactionControllerTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class TransactionResourceTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,20 +45,22 @@ public class TransactionControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @BeforeEach
+    @BeforeAll
     @Transactional
-    void insertDummyData() throws Exception {
+    public void insertDummyData() throws Exception {
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(1L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(1L).build());
+                .wallet(walletService.getUserWalletById(4L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(100L).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.CREDIT)
-                .wallet(walletService.getUserWalletById(1L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(2L).build());
+                .wallet(walletService.getUserWalletById(4L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(101L).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(1L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(3L).build());
+                .wallet(walletService.getUserWalletById(4L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(102L).build());
+
+        transactionService.getAll().stream().forEach(System.out::println);
     }
 
     @Test
-    void transactionHistoryTest() throws Exception {
-        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(1L);
+    public void whenTransactionHistoryOfUserExistThenReturnSuccessAndExpectedResultIsCorrect() throws Exception {
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(4L);
 
         mockMvc.perform(get("/transaction/history")
         .contentType(APPLICATION_JSON_VALUE)
@@ -75,7 +77,7 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void emptyTransactionHistoryTest() throws Exception {
+    public void whenUserExistButTransactionOfThatUserIsNotExistReturnEmptyTransactionList() throws Exception {
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(2L);
 
         mockMvc.perform(get("/transaction/history")
@@ -87,7 +89,7 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void userNotFoundExceptionTest() throws Exception {
+    public void whenUserIsNotExistThenThrowsUserNotFoundException() throws Exception {
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(5L);
         mockMvc.perform(get("/transaction/history")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -98,17 +100,15 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void validityErrorTest() throws Exception {
+    public void whenUserTransactionHistoryRequestIsNotInWantedFormThenThrowsValidityError() throws Exception {
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest();
         mockMvc.perform(get("/transaction/history")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.userId").value("user id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("userId"))
+                .andExpect(jsonPath("$.errors[0].message").value("user id cannot be null"));
 
     }
-
-
-
 }

@@ -42,7 +42,7 @@ public class WalletTransactionServiceTest {
         transactionHistory = new TransactionHistory(TransactionType.CREDIT.name(), BigDecimal.valueOf(100L), new Date(1385355600000L));
         wallet = new Wallet();
 
-        transaction = Transaction.builder().id(1L).transactionTime(new Date(1385355600000L))
+        transaction = Transaction.builder().id(20L).transactionTime(new Date(1385355600000L))
                 .transactionType(TransactionType.CREDIT).amount(BigDecimal.valueOf(100L)).wallet(wallet).build();
 
         wallet.setTransactionList(List.of(transaction));
@@ -50,7 +50,7 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
-    public void userTransactionHistoryTest() throws Exception {
+    public void whenUserTransactionIsExistThenReturnCorrectTransaction() throws Exception {
         when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
         UserTransactionHistoryResponse response = walletTransactionService.getUserTransactionHistory(request);
         assertAll(
@@ -64,7 +64,7 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
-    public void userTransactionHistoryUserNotFoundExceptionTest() throws Exception {
+    public void whenUserNotFoundThenThrowsUserNotFoundException() throws Exception {
         when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () -> walletTransactionService.getUserTransactionHistory(request));
     }

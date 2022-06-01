@@ -1,5 +1,6 @@
 package org.leovegas.wallet.business;
 
+import lombok.RequiredArgsConstructor;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
@@ -14,24 +15,21 @@ import org.leovegas.wallet.service.TransactionService;
 import org.leovegas.wallet.service.WalletService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
+@RequiredArgsConstructor
 public class PaymentService {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private WalletService walletService;
+    private final TransactionService transactionService;
+    private final WalletService walletService;
 
 
-    public UserDebitResponse debit(UserDebitRequest request) throws NonUniqueTransactionException, UserNotFoundException, BalanceInsufficientException {
+    public UserDebitResponse debit(UserDebitRequest request)  {
 
         logger.info("PaymentService.debit is called with " + request);
         isTransactionUnique(request.getTransactionId());

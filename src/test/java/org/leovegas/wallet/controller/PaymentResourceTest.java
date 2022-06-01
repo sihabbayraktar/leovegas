@@ -1,7 +1,10 @@
 package org.leovegas.wallet.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.leovegas.wallet.exception.BalanceInsufficientException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
@@ -12,8 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class PaymentControllerTest  {
+public class PaymentResourceTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,8 +37,8 @@ public class PaymentControllerTest  {
 
 
     @Test
-    @Order(1)
-    public void debitTest() throws Exception {
+    @Order(value = 1)
+    public void whenDebitMoneyThenReturnSuccessAndExpectedBalanceIsCorrect() throws Exception {
         UserDebitRequest request = new UserDebitRequest(1L, BigDecimal.valueOf(20), 1L);
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -48,8 +49,8 @@ public class PaymentControllerTest  {
     }
 
     @Test
-    @Order(2)
-    public void creditTest() throws Exception {
+    @Order(value = 2)
+    public void whenCreditMoneyThenReturnSuccessAndExpectedBalanceIsCorrect() throws Exception {
         UserCreditRequest request = new UserCreditRequest(2L, BigDecimal.valueOf(20), 2L);
         mockMvc.perform(post("/payment/credit")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -60,22 +61,22 @@ public class PaymentControllerTest  {
     }
 
     @Test
-    @Order(3)
-    public void nonUniqueTransactionExceptionForCreditTest() throws Exception {
-        UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 1L);
+    @Order(value = 3)
+    public void whenCreditMoneyHasNoUniqueTransactionIdThenThrowsNonUniqueTransactionException() throws Exception {
+        UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 2L);
         mockMvc.perform(post("/payment/credit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof NonUniqueTransactionException))
-                .andExpect(result -> assertEquals("Transaction id: 1 is not unique.", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("Transaction id: 2 is not unique.", result.getResolvedException().getMessage()));
 
     }
 
     @Test
-    @Order(4)
-    public void nonUniqueTransactionExceptionForDebitTest() throws Exception {
+    @Order(value = 4)
+    public void whenDebitMoneyHasNoUniqueTransactionIdThenThrowsNonUniqueTransactionException() throws Exception {
         UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 1L);
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -88,9 +89,9 @@ public class PaymentControllerTest  {
     }
 
     @Test
-    @Order(5)
-    public void balanceInsufficientExceptionTest() throws Exception {
-        UserDebitRequest request = new UserDebitRequest(3L, BigDecimal.valueOf(500), 10L);
+    @Order(value = 5)
+    public void whenDebitMoneyBalanceIsNotSuffucientThenThrowsBalanceInsufficientException() throws Exception {
+        UserDebitRequest request = new UserDebitRequest(3L, BigDecimal.valueOf(500), 15L);
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
@@ -102,18 +103,23 @@ public class PaymentControllerTest  {
     }
 
     @Test
-    @Order(6)
-    public void validityErrorTest() throws Exception {
+    @Order(value = 6)
+    public void whenCreditOrDebitRequestIsNotInWantedFormThenGiveValidityError() throws Exception {
         UserDebitRequest request = new UserDebitRequest();
 
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.amount").value("amount cannot be null"))
-                .andExpect(jsonPath("$.transactionId").value("transaction id cannot be null"))
-                .andExpect(jsonPath("$.userId").value("user id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("amount"))
+                .andExpect(jsonPath("$.errors[0].message").value("amount cannot be null"))
+                .andExpect(jsonPath("$.errors[1].field").value("transactionId"))
+                .andExpect(jsonPath("$.errors[1].message").value("transaction id cannot be null"))
+                .andExpect(jsonPath("$.errors[2].field").value("userId"))
+                .andExpect(jsonPath("$.errors[2].message").value("user id cannot be null"));
+
+
 
         request.setUserId(1L);
 
@@ -121,9 +127,11 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.amount").value("amount cannot be null"))
-                .andExpect(jsonPath("$.transactionId").value("transaction id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("amount"))
+                .andExpect(jsonPath("$.errors[0].message").value("amount cannot be null"))
+                .andExpect(jsonPath("$.errors[1].field").value("transactionId"))
+                .andExpect(jsonPath("$.errors[1].message").value("transaction id cannot be null"));
 
 
         request.setAmount(BigDecimal.valueOf(10L));
@@ -132,8 +140,9 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.transactionId").value("transaction id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("transactionId"))
+                .andExpect(jsonPath("$.errors[0].message").value("transaction id cannot be null"));
 
 
         request.setAmount(BigDecimal.valueOf(-100L));
@@ -143,8 +152,9 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.amount").value("amount cannot be less than 0"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("amount"))
+                .andExpect(jsonPath("$.errors[0].message").value("amount cannot be less than 0"));
 
 
         UserCreditRequest request1 = new UserCreditRequest();
@@ -153,10 +163,14 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request1)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.amount").value("amount cannot be null"))
-                .andExpect(jsonPath("$.transactionId").value("transaction id cannot be null"))
-                .andExpect(jsonPath("$.userId").value("user id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("amount"))
+                .andExpect(jsonPath("$.errors[0].message").value("amount cannot be null"))
+                .andExpect(jsonPath("$.errors[1].field").value("transactionId"))
+                .andExpect(jsonPath("$.errors[1].message").value("transaction id cannot be null"))
+                .andExpect(jsonPath("$.errors[2].field").value("userId"))
+                .andExpect(jsonPath("$.errors[2].message").value("user id cannot be null"));
+
 
         request1.setUserId(1L);
 
@@ -164,9 +178,11 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request1)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.amount").value("amount cannot be null"))
-                .andExpect(jsonPath("$.transactionId").value("transaction id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("amount"))
+                .andExpect(jsonPath("$.errors[0].message").value("amount cannot be null"))
+                .andExpect(jsonPath("$.errors[1].field").value("transactionId"))
+                .andExpect(jsonPath("$.errors[1].message").value("transaction id cannot be null"));
 
 
         request1.setAmount(BigDecimal.valueOf(10L));
@@ -175,8 +191,9 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request1)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.transactionId").value("transaction id cannot be null"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("transactionId"))
+                .andExpect(jsonPath("$.errors[0].message").value("transaction id cannot be null"));
 
 
         request1.setAmount(BigDecimal.valueOf(-100L));
@@ -186,9 +203,9 @@ public class PaymentControllerTest  {
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request1)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.amount").value("amount cannot be less than 0"));
-
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].field").value("amount"))
+                .andExpect(jsonPath("$.errors[0].message").value("amount cannot be less than 0"));
     }
 
     /*
