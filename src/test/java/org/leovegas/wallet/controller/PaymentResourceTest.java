@@ -215,7 +215,7 @@ public class PaymentResourceTest {
 
 
     @Test
-    @Order(7)
+    @Order(value = 7)
     public void whenCreditAndDebitOccuredSameTimeThenExpectObjectOptimisticLockingFailureException() throws Exception {
         ExecutorService service = Executors.newFixedThreadPool(4);
         for(int i = 0; i < 10; i++) {
