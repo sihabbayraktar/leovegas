@@ -44,7 +44,8 @@ public class PaymentResourceTest {
     @Test
     @Order(value = 1)
     public void whenDebitMoneyThenReturnSuccessAndExpectedBalanceIsCorrect() throws Exception {
-        UserDebitRequest request = new UserDebitRequest(1L, BigDecimal.valueOf(20), 1L);
+
+        UserDebitRequest request = new UserDebitRequest(1L, BigDecimal.valueOf(20), 500L);
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
@@ -56,7 +57,8 @@ public class PaymentResourceTest {
     @Test
     @Order(value = 2)
     public void whenCreditMoneyThenReturnSuccessAndExpectedBalanceIsCorrect() throws Exception {
-        UserCreditRequest request = new UserCreditRequest(2L, BigDecimal.valueOf(20), 2L);
+
+        UserCreditRequest request = new UserCreditRequest(2L, BigDecimal.valueOf(20), 200L);
         mockMvc.perform(post("/payment/credit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
@@ -68,34 +70,37 @@ public class PaymentResourceTest {
     @Test
     @Order(value = 3)
     public void whenCreditMoneyHasNoUniqueTransactionIdThenThrowsNonUniqueTransactionException() throws Exception {
-        UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 2L);
+
+        UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 200L);
         mockMvc.perform(post("/payment/credit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof NonUniqueTransactionException))
-                .andExpect(result -> assertEquals("Transaction id: 2 is not unique.", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("Transaction id: 200 is not unique.", result.getResolvedException().getMessage()));
 
     }
 
     @Test
     @Order(value = 4)
     public void whenDebitMoneyHasNoUniqueTransactionIdThenThrowsNonUniqueTransactionException() throws Exception {
-        UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 1L);
+
+        UserCreditRequest request = new UserCreditRequest(3L, BigDecimal.valueOf(20), 500L);
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof NonUniqueTransactionException))
-                .andExpect(result -> assertEquals("Transaction id: 1 is not unique.", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("Transaction id: 500 is not unique.", result.getResolvedException().getMessage()));
 
     }
 
     @Test
     @Order(value = 5)
     public void whenDebitMoneyBalanceIsNotSuffucientThenThrowsBalanceInsufficientException() throws Exception {
+
         UserDebitRequest request = new UserDebitRequest(3L, BigDecimal.valueOf(500), 15L);
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -110,8 +115,8 @@ public class PaymentResourceTest {
     @Test
     @Order(value = 6)
     public void whenCreditOrDebitRequestIsNotInWantedFormThenGiveValidityError() throws Exception {
-        UserDebitRequest request = new UserDebitRequest();
 
+        UserDebitRequest request = new UserDebitRequest();
         mockMvc.perform(post("/payment/debit")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE)
@@ -217,6 +222,7 @@ public class PaymentResourceTest {
     @Test
     @Order(value = 7)
     public void whenCreditAndDebitOccuredSameTimeThenExpectObjectOptimisticLockingFailureException() throws Exception {
+
         ExecutorService service = Executors.newFixedThreadPool(4);
         for(int i = 0; i < 10; i++) {
             service.submit(() -> {
