@@ -15,7 +15,7 @@ Technologies:
 ## RUN
 1. Clone the repository.
 2. Run `mvn clean install` command in the terminal.
-3. Run `java -jar target/rss-0.0.1-SNAPSHOT.jar` in the terminal.
+3. Run `java -jar target/wallet-0.0.1-SNAPSHOT.jar` in the terminal.
 4. Then [link](http://localhost:8080) to query
 
 
