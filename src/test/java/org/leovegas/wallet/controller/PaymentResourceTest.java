@@ -12,9 +12,14 @@ import org.leovegas.wallet.model.request.UserDebitRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -208,19 +213,44 @@ public class PaymentResourceTest {
                 .andExpect(jsonPath("$.errors[0].message").value("amount cannot be less than 0"));
     }
 
-    /*
+
     @Test
     @Order(7)
-    public void concurencyTest() throws Exception {
+    public void whenCreditAndDebitOccuredSameTimeThenExpectObjectOptimisticLockingFailureException() throws Exception {
         ExecutorService service = Executors.newFixedThreadPool(4);
-        for(int i = 0; i < 100; i++) {
+        for(int i = 0; i < 10; i++) {
             service.submit(() -> {
-               mockMvc.perform()
+
+                try {
+                    mockMvc.perform(post("/payment/credit")
+                    .contentType(APPLICATION_JSON_VALUE)
+                            .accept(APPLICATION_JSON_VALUE)
+                            .content(objectMapper.writeValueAsString(
+                                    UserCreditRequest.builder().amount(BigDecimal.valueOf(100L)).userId(1L).transactionId(generateTransactionId()).build())));
+
+                    mockMvc.perform(post("/payment/debit")
+                            .contentType(APPLICATION_JSON_VALUE)
+                            .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(
+                                    UserDebitRequest.builder().amount(BigDecimal.valueOf(100L)).userId(1L).transactionId(generateTransactionId()).build())));
+                }
+                catch (Exception exception) {
+                    assertTrue(() -> exception instanceof ObjectOptimisticLockingFailureException);
+                }
+
             });
+        }
+
+        service.shutdown();
+        if(!service.awaitTermination(60, TimeUnit.SECONDS)) {
+            service.shutdown();
         }
     }
 
-    */
+    private Long generateTransactionId() {
+        return ThreadLocalRandom.current().nextLong(0, Integer.MAX_VALUE);
+    }
+
+
 
 
 
