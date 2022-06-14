@@ -25,7 +25,7 @@ Technologies:
 ```
 - Request
 {
-    "userId": null
+    "userId": "5fc03087-d265-11e7-b8c6-83e29cd24f4c"
 }
 - Response
 {
@@ -58,9 +58,9 @@ Technologies:
 ```
 - Request
 {
-    "userId": 1,
+    "userId": "5fc03087-d265-11e7-b8c6-83e29cd24f4c",
     "amount": 50,
-    "transactionId":3
+    "transactionId":"f3a0a672-ec22-11ec-8ea0-0242ac120002"
 }
 
 - Response
@@ -73,13 +73,13 @@ Technologies:
 ```
 - Request
 {
-    "userId": 1,
+    "userId": "5fc03087-d265-11e7-b8c6-83e29cd24f4c",
     "amount": 50,
-    "transactionId":4
+    "transactionId":"06cd8332-ec23-11ec-8ea0-0242ac120002"
 }
 
 {
-    "balance": 100.00
+    "balance": 250.00
 }
 
 ```
