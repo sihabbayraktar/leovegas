@@ -2,7 +2,6 @@ package org.leovegas.wallet.model.request;
 
 import lombok.*;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 
@@ -14,5 +13,5 @@ import javax.validation.constraints.NotNull;
 public class UserTransactionHistoryRequest {
 
     @NotNull(message = "user id cannot be null")
-    private Long userId;
+    private String userId;
 }

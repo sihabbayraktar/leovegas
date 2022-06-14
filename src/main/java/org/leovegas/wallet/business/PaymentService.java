@@ -6,9 +6,9 @@ import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
 import org.leovegas.wallet.exception.BalanceInsufficientException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
-import org.leovegas.wallet.exception.UserNotFoundException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
 import org.leovegas.wallet.model.request.UserDebitRequest;
+import org.leovegas.wallet.model.response.TransactionResponse;
 import org.leovegas.wallet.model.response.UserCreditResponse;
 import org.leovegas.wallet.model.response.UserDebitResponse;
 import org.leovegas.wallet.service.TransactionService;
@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -32,48 +34,69 @@ public class PaymentService {
     public UserDebitResponse debit(UserDebitRequest request)  {
 
         logger.info("PaymentService.debit is called with " + request);
-        isTransactionUnique(request.getTransactionId());
-
-        Wallet wallet = walletService.getUserWalletById(request.getUserId());
-
-        BigDecimal updatedBalance = wallet.getBalance().subtract(request.getAmount());
-        if (updatedBalance.compareTo(BigDecimal.ZERO) < 0) {
-            logger.error("Balance is insufficient");
-            throw new BalanceInsufficientException("Balance is insufficient to debit");
-        }
-
-        wallet.setBalance(updatedBalance);
-        Transaction transaction = Transaction.builder().id(request.getTransactionId()).transactionType(TransactionType.DEBIT)
-                .amount(request.getAmount()).wallet(wallet).build();
-
-        saveWalletAndTransaction(wallet, transaction);
-
-        return new UserDebitResponse(updatedBalance);
+        return (UserDebitResponse) modifyBalance(TransactionType.DEBIT, UUID.fromString(request.getUserId()),
+                UUID.fromString(request.getTransactionId()), request.getAmount());
     }
 
-    public UserCreditResponse credit(UserCreditRequest request) throws NonUniqueTransactionException, UserNotFoundException {
+    public UserCreditResponse credit(UserCreditRequest request)  {
 
         logger.info("PaymentService.credit is called with " + request);
-        isTransactionUnique(request.getTransactionId());
-
-        Wallet wallet = walletService.getUserWalletById(request.getUserId());
-
-        BigDecimal updatedBalance = wallet.getBalance().add(request.getAmount());
-        wallet.setBalance(updatedBalance);
-        Transaction transaction = Transaction.builder().id(request.getTransactionId()).transactionType(TransactionType.CREDIT)
-                .amount(request.getAmount()).wallet(wallet).build();
-
-        saveWalletAndTransaction(wallet, transaction);
-
-        return new UserCreditResponse(updatedBalance);
+        return (UserCreditResponse) modifyBalance(TransactionType.CREDIT, UUID.fromString(request.getUserId()),
+                UUID.fromString(request.getTransactionId()), request.getAmount());
     }
 
-    private void isTransactionUnique(Long transactionId) throws NonUniqueTransactionException {
-        if (transactionService.getTransactionById(transactionId) != null) {
-            logger.error("Transaction is not unique");
-            throw new NonUniqueTransactionException("Transaction id: " + transactionId + " is not unique.");
+
+    private TransactionResponse modifyBalance(TransactionType transactionType,
+                                              UUID userId, UUID transactionId, BigDecimal amount)  {
+
+        Wallet wallet = walletService.getUserWalletById(userId);
+        Transaction isExistTransaction = transactionService.getByTransactionId(transactionId);
+
+        // Idempotency and transaction uniqueness check.
+        if (isExistTransaction != null) {
+            if (isExistTransaction.getWallet().getId().equals(wallet.getId())
+                    && isExistTransaction.getAmount().equals(amount)){
+                if (transactionType.equals(TransactionType.CREDIT)) {
+                    return new UserCreditResponse(wallet.getBalance().add(amount));
+                }
+                else {
+                    return new UserDebitResponse(wallet.getBalance().subtract(amount));
+                }
+            }
+            else {
+                logger.error("Transaction is not unique");
+                throw new NonUniqueTransactionException("Transaction id: " + transactionId + " is not unique.");
+            }
+        }
+
+        Transaction transaction2Save = Transaction.builder().transactionId(transactionId).amount(amount)
+                .transactionTime(new Date()).build();
+        BigDecimal updatedBalance;
+
+        if(transactionType.equals(TransactionType.CREDIT)) {
+            logger.info("Transaction is credit and processing");
+            transaction2Save.setTransactionType(TransactionType.CREDIT);
+            updatedBalance = wallet.getBalance().add(amount);
+            wallet.setBalance(updatedBalance);
+            transaction2Save.setWallet(wallet);
+            saveWalletAndTransaction(wallet, transaction2Save);
+            return new UserCreditResponse(updatedBalance);
+        }
+        else {
+            logger.info("Transaction is debit and processing");
+            transaction2Save.setTransactionType(TransactionType.DEBIT);
+            updatedBalance = wallet.getBalance().subtract(amount);
+            if (updatedBalance.compareTo(BigDecimal.ZERO) < 0) {
+                logger.error("Balance is insufficient");
+                throw new BalanceInsufficientException("Balance is insufficient to debit");
+            }
+            wallet.setBalance(updatedBalance);
+            transaction2Save.setWallet(wallet);
+            saveWalletAndTransaction(wallet, transaction2Save);
+            return new UserDebitResponse(updatedBalance);
         }
     }
+
 
     private void saveWalletAndTransaction(Wallet wallet, Transaction transaction) {
 

@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class BalanceService {
@@ -19,7 +21,7 @@ public class BalanceService {
 
     public BalanceResponse getUserBalance(BalanceRequest request) {
         logger.info("BalanceService.getUserBalance is called with " + request);
-        return new BalanceResponse(walletService.getUserWalletById(request.getUserId()).getBalance());
+        return new BalanceResponse(walletService.getUserWalletById(UUID.fromString(request.getUserId())).getBalance());
     }
 
     public AllBalanceResponse getAllBalance() {

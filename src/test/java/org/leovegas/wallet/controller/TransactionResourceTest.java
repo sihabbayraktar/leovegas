@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,22 +46,25 @@ public class TransactionResourceTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private UUID userId = UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002");
+
     @BeforeAll
     @Transactional
-    public void insertDummyData() throws Exception {
+    public void insertDummyData() {
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(4L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(100L).build());
+                .wallet(walletService.getUserWalletById(userId))
+                .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.CREDIT)
-                .wallet(walletService.getUserWalletById(4L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(101L).build());
+                .wallet(walletService.getUserWalletById(userId))
+                .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(4L)).amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).id(102L).build());
-
-        transactionService.getAll().stream().forEach(System.out::println);
+                .wallet(walletService.getUserWalletById(userId))
+                .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
     }
 
     @Test
     public void whenTransactionHistoryOfUserExistThenReturnSuccessAndExpectedResultIsCorrect() throws Exception {
-        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(4L);
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(userId.toString());
 
         mockMvc.perform(get("/transaction/history")
         .contentType(APPLICATION_JSON_VALUE)
@@ -78,7 +82,7 @@ public class TransactionResourceTest {
 
     @Test
     public void whenUserExistButTransactionOfThatUserIsNotExistReturnEmptyTransactionList() throws Exception {
-        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(2L);
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("0ff4ca58-ec0d-11ec-8ea0-0242ac120002");
 
         mockMvc.perform(get("/transaction/history")
                 .contentType(APPLICATION_JSON_VALUE)
@@ -90,13 +94,15 @@ public class TransactionResourceTest {
 
     @Test
     public void whenUserIsNotExistThenThrowsUserNotFoundException() throws Exception {
-        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(5L);
+        String userIdNotExist = UUID.randomUUID().toString();
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(userIdNotExist);
         mockMvc.perform(get("/transaction/history")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException))
-                .andExpect(result -> assertEquals("User Id 5 is not found", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("User Id " + userIdNotExist + " is not found",
+                        result.getResolvedException().getMessage()));
     }
 
     @Test

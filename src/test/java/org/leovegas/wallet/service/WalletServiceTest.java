@@ -12,13 +12,9 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -32,12 +28,14 @@ public class WalletServiceTest {
     private WalletService walletService;
 
     private Wallet wallet;
+    private UUID userId;
 
     @BeforeEach
     public void setup() {
+
+        userId = UUID.randomUUID();
         wallet = new Wallet();
-        wallet.setId(10L);
-        wallet.setUserId(10L);
+        wallet.setUserId(userId);
         wallet.setBalance(BigDecimal.valueOf(100L));
         wallet.setVersion(1L);
         wallet.setTransactionList(Collections.emptyList());
@@ -51,24 +49,24 @@ public class WalletServiceTest {
     }
 
     @Test
-    public void whenWalletsUserIsExistThenReturnBalanceIsCorrect() throws Exception {
-        when(walletRepository.findByUserId(anyLong())).thenReturn(Optional.ofNullable(wallet));
-        Wallet userWalletById = walletService.getUserWalletById(1L);
+    public void whenWalletsUserIsExistThenReturnBalanceIsCorrect() {
+        when(walletRepository.findByUserId(any())).thenReturn(Optional.ofNullable(wallet));
+        Wallet userWalletById = walletService.getUserWalletById(userId);
         assertAll(() -> assertNotNull(userWalletById),
         () -> assertEquals(wallet.getBalance(), userWalletById.getBalance()));
     }
 
     @Test
     public void whenUserIsNotFoundThenThrowsUserNotFoundException() {
-        when(walletRepository.findByUserId(anyLong())).thenReturn(Optional.empty());
-        assertThrows(UserNotFoundException.class, ()->walletService.getUserWalletById(1L));
+        when(walletRepository.findByUserId(any())).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, ()->walletService.getUserWalletById(userId));
     }
 
     @Test
     public void whenWalletIsSavedThenReturnCorrectWallet() {
         Transaction transaction = Transaction.builder().amount(BigDecimal.valueOf(100L))
                 .transactionType(TransactionType.CREDIT)
-                .id(1L)
+                .transactionId(UUID.fromString("9e24f776-ec0d-11ec-8ea0-0242ac120002"))
                 .transactionTime(new Date()).build();
         wallet.setTransactionList(List.of(transaction));
 

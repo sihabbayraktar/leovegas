@@ -17,9 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -38,11 +39,11 @@ public class WalletTransactionServiceTest {
 
     @BeforeEach
     public void setup() {
-        request = new UserTransactionHistoryRequest(1L);
+        request = new UserTransactionHistoryRequest(UUID.randomUUID().toString());
         transactionHistory = new TransactionHistory(TransactionType.CREDIT.name(), BigDecimal.valueOf(100L), new Date(1385355600000L));
         wallet = new Wallet();
 
-        transaction = Transaction.builder().id(20L).transactionTime(new Date(1385355600000L))
+        transaction = Transaction.builder().transactionId(UUID.randomUUID()).transactionTime(new Date(1385355600000L))
                 .transactionType(TransactionType.CREDIT).amount(BigDecimal.valueOf(100L)).wallet(wallet).build();
 
         wallet.setTransactionList(List.of(transaction));
@@ -50,8 +51,8 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
-    public void whenUserTransactionIsExistThenReturnCorrectTransaction() throws Exception {
-        when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
+    public void whenUserTransactionIsExistThenReturnCorrectTransaction() {
+        when(walletService.getUserWalletById(any())).thenReturn(wallet);
         UserTransactionHistoryResponse response = walletTransactionService.getUserTransactionHistory(request);
         assertAll(
                 () -> assertNotNull(response),
@@ -64,8 +65,8 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
-    public void whenUserNotFoundThenThrowsUserNotFoundException() throws Exception {
-        when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
+    public void whenUserNotFoundThenThrowsUserNotFoundException() {
+        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () -> walletTransactionService.getUserTransactionHistory(request));
     }
 

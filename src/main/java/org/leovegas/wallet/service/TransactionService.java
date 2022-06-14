@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,18 +18,17 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
 
-    public Transaction getTransactionById(Long transactionId) {
-        logger.info("Transaction.getTransactionById method is called with transactionId: "+ transactionId);
-        return transactionRepository.findById(transactionId).orElse(null);
+    public Transaction getByTransactionId(UUID transactionId) {
+        logger.info("TransactionService.getTransactionById method is called with transactionId: "+ transactionId);
+        return transactionRepository.findByTransactionId(transactionId).orElse(null);
     }
+
 
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public void saveTransaction(Transaction transaction) {
-        logger.info("Transaction.saveTransaction method is called");
+        logger.info("TransactionService.saveTransaction method is called");
         transactionRepository.save(transaction);
     }
 
-    public List<Transaction> getAll() {
-        return transactionRepository.findAll();
-    }
+
 }

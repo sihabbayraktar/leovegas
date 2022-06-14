@@ -12,9 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -30,11 +30,14 @@ public class TransactionServiceTest {
 
    private Transaction transaction;
 
+   private UUID transactionId;
+
    @BeforeAll
    public void setup() {
 
+       transactionId = UUID.randomUUID();
        transaction = new Transaction();
-       transaction.setId(10L);
+       transaction.setTransactionId(transactionId);
        transaction.setAmount(BigDecimal.valueOf(100L));
        transaction.setTransactionTime(new Date());
        transaction.setTransactionType(TransactionType.CREDIT);
@@ -43,8 +46,8 @@ public class TransactionServiceTest {
 
    @Test
    public void whenTransactionIsCorrectThenReturnTransactionIsCorrect() {
-       when(transactionRepository.findById(anyLong())).thenReturn(java.util.Optional.ofNullable(transaction));
-       Transaction transactionById = transactionService.getTransactionById(10L);
+       when(transactionRepository.findByTransactionId(any())).thenReturn(java.util.Optional.ofNullable(transaction));
+       Transaction transactionById = transactionService.getByTransactionId(transactionId);
        assertAll(
                () -> assertNotNull(transactionById),
                () -> assertEquals(transactionById.getAmount(), transaction.getAmount()),

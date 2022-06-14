@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +21,10 @@ public class WalletService {
     private final WalletRepository walletRepository;
 
     @Transactional
-    public Wallet getUserWalletById(Long userId) {
+    public Wallet getUserWalletById(UUID userId) {
         logger.info("WalletService.findByUserId method is called with userId: "+ userId);
         return walletRepository.findByUserId(userId).orElseThrow(() -> new UserNotFoundException("User Id " + userId +" is not found"));
     }
-
 
     public List<Wallet> getAllWallets() {
         logger.info("WalletService.getAllWallets method is called");

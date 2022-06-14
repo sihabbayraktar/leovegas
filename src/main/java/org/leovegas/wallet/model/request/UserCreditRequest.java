@@ -15,13 +15,13 @@ import java.math.BigDecimal;
 public class UserCreditRequest {
 
     @NotNull(message = "user id cannot be null")
-    private Long userId;
+    private String userId;
 
     @Min(value = 0, message = "amount cannot be less than 0")
     @NotNull(message = "amount cannot be null")
     private BigDecimal amount;
 
     @NotNull(message = "transaction id cannot be null")
-    private Long transactionId;
+    private String transactionId;
 
 }

@@ -2,7 +2,6 @@ package org.leovegas.wallet.model.request;
 
 import lombok.*;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Getter
@@ -13,5 +12,5 @@ import javax.validation.constraints.NotNull;
 public class BalanceRequest {
 
     @NotNull(message = "user id cannot be null")
-    private Long userId;
+    private String userId;
 }

@@ -1,13 +1,13 @@
 package org.leovegas.wallet.model.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
-@AllArgsConstructor
-public class UserDebitResponse {
+public class UserDebitResponse extends TransactionResponse{
 
-    private BigDecimal balance;
+    public UserDebitResponse(BigDecimal amount) {
+        super(amount);
+    }
 }

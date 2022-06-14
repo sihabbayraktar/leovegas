@@ -18,9 +18,10 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -40,33 +41,30 @@ public class PaymentServiceTest {
     private Wallet wallet;
     private Transaction debitTransaction;
     private Transaction creditTransaction;
-    //private UserDebitRequest balanceInsufficientDebitRequest;
 
     @BeforeEach
     public void setup() {
-        debitRequest = new UserDebitRequest(1L, BigDecimal.valueOf(100L), 2L);
-        creditRequest = new UserCreditRequest(1L, BigDecimal.valueOf(100L), 3L);
-        //balanceInsufficientDebitRequest = new UserDebitRequest(1L, BigDecimal.valueOf(500L), 5L);
+
+        UUID userId = UUID.randomUUID();
+        debitRequest = new UserDebitRequest(userId.toString(), BigDecimal.valueOf(100L), UUID.randomUUID().toString());
+        creditRequest = new UserCreditRequest(userId.toString(), BigDecimal.valueOf(100L), UUID.randomUUID().toString());
 
         wallet = new Wallet();
         wallet.setId(1L);
         wallet.setBalance(BigDecimal.valueOf(200L));
-        wallet.setUserId(1L);
+        wallet.setUserId(userId);
 
         debitTransaction = Transaction.builder().transactionType(TransactionType.DEBIT)
-                .amount(BigDecimal.valueOf(100L)).id(1L).wallet(wallet).build();
+                .amount(BigDecimal.valueOf(100L)).transactionId(UUID.randomUUID()).wallet(wallet).build();
 
         creditTransaction = Transaction.builder().transactionType(TransactionType.CREDIT)
-                .amount(BigDecimal.valueOf(100L)).id(2L).wallet(wallet).build();
+                .amount(BigDecimal.valueOf(100L)).transactionId(UUID.randomUUID()).wallet(wallet).build();
 
-
-
-        //wallet.setTransactionList(List.of(debitTransaction, creditTransaction));
     }
 
     @Test
-    public void whenDebitIsCorrectThenReturnBalanceIsCorrect() throws Exception{
-        when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
+    public void whenDebitIsCorrectThenReturnBalanceIsCorrect() {
+        when(walletService.getUserWalletById(any())).thenReturn(wallet);
         UserDebitResponse response = paymentService.debit(debitRequest);
         assertAll(
                 () -> assertNotNull(response),
@@ -77,20 +75,20 @@ public class PaymentServiceTest {
 
     @Test
     public void whenDebitTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
-        when(transactionService.getTransactionById(anyLong())).thenReturn(debitTransaction);
+        when(walletService.getUserWalletById(any())).thenReturn(createWalletForNonUniqueTransaction());
+        when(transactionService.getByTransactionId(any())).thenReturn(debitTransaction);
         assertThrows(NonUniqueTransactionException.class, () -> paymentService.debit(debitRequest));
-
     }
 
     @Test
-    public void whenDebitUserIsNotFoundThenThrowsUserNotFoundException() throws Exception {
-        when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
+    public void whenDebitUserIsNotFoundThenThrowsUserNotFoundException() {
+        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () ->paymentService.debit(debitRequest));
     }
 
     @Test
-    public void whenCreditIsCorrectThenReturnBalanceIsCorrect() throws Exception {
-        when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
+    public void whenCreditIsCorrectThenReturnBalanceIsCorrect() {
+        when(walletService.getUserWalletById(any())).thenReturn(wallet);
         UserCreditResponse response = paymentService.credit(creditRequest);
         assertAll(
                 () -> assertNotNull(response),
@@ -99,14 +97,21 @@ public class PaymentServiceTest {
 
     @Test
     public void whenCreditTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
-        when(transactionService.getTransactionById(anyLong())).thenReturn(creditTransaction);
+        when(walletService.getUserWalletById(any())).thenReturn(createWalletForNonUniqueTransaction());
+        when(transactionService.getByTransactionId(any())).thenReturn(creditTransaction);
         assertThrows(NonUniqueTransactionException.class, () -> paymentService.credit(creditRequest));
     }
 
     @Test
-    public void whenCreditUserIsNotFoundThenThrowsUserNotFoundException() throws Exception {
-        when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
+    public void whenCreditUserIsNotFoundThenThrowsUserNotFoundException() {
+        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () -> paymentService.credit(creditRequest));
+    }
+
+    private Wallet createWalletForNonUniqueTransaction() {
+        Wallet walletForNonUniqueTransaction = new Wallet();
+        wallet.setId(2L);
+        return walletForNonUniqueTransaction;
     }
 
 

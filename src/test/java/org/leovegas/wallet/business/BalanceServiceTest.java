@@ -14,9 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -33,15 +34,15 @@ public class BalanceServiceTest {
 
     @BeforeEach
     public void setup(){
-        request = new BalanceRequest(1L);
+        request = new BalanceRequest(UUID.randomUUID().toString());
         wallet = new Wallet();
         wallet.setId(1L);
         wallet.setBalance(BigDecimal.valueOf(100L));
     }
 
     @Test
-    public void whenBalanceIsCorrectThenReturnBalanceIsCorrect() throws Exception{
-        when(walletService.getUserWalletById(anyLong())).thenReturn(wallet);
+    public void whenBalanceIsCorrectThenReturnBalanceIsCorrect() {
+        when(walletService.getUserWalletById(any())).thenReturn(wallet);
         BalanceResponse response = balanceService.getUserBalance(request);
         assertAll(
                 () -> assertNotNull(response),
@@ -60,8 +61,8 @@ public class BalanceServiceTest {
     }
 
     @Test
-    public void whenUserNotFoundThenThrowsUserNotFoundException() throws UserNotFoundException {
-        when(walletService.getUserWalletById(anyLong())).thenThrow(UserNotFoundException.class);
+    public void whenUserNotFoundThenThrowsUserNotFoundException() {
+        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
         assertThrows(UserNotFoundException.class, () -> balanceService.getUserBalance(request));
     }
 

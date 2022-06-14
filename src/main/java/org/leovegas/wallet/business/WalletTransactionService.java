@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class WalletTransactionService {
@@ -20,7 +22,7 @@ public class WalletTransactionService {
     public UserTransactionHistoryResponse getUserTransactionHistory(UserTransactionHistoryRequest request) {
         logger.info("TransactionService.getUserTransactionHistory is called with " + request);
         UserTransactionHistoryResponse response = new UserTransactionHistoryResponse();
-        walletService.getUserWalletById(request.getUserId()).getTransactionList().stream().forEach(transaction -> {
+        walletService.getUserWalletById(UUID.fromString(request.getUserId())).getTransactionList().stream().forEach(transaction -> {
            response.addTransactionHistory(new TransactionHistory(transaction));
         });
         return response;

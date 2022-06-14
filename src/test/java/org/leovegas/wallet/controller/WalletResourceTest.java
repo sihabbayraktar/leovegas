@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,7 +31,7 @@ public class WalletResourceTest {
 
     @Test
     public void whenUserWalletIsExistThenReturnExpectedBalanceIsCorrect() throws Exception {
-        BalanceRequest request = new BalanceRequest(1L);
+        BalanceRequest request = new BalanceRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c");
         mockMvc.perform(get("/wallet/userbalance")
         .contentType(APPLICATION_JSON_VALUE)
         .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(request)))
@@ -39,13 +41,14 @@ public class WalletResourceTest {
 
     @Test
     public void whenUserIsNotExistThenThrowsUserNotFoundException() throws Exception {
-        BalanceRequest request = new BalanceRequest(5L);
+        String userId = UUID.randomUUID().toString();
+        BalanceRequest request = new BalanceRequest(userId);
         mockMvc.perform(get("/wallet/userbalance")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException))
-                .andExpect(result -> assertEquals("User Id 5 is not found", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("User Id "+ userId +" is not found", result.getResolvedException().getMessage()));
     }
 
     @Test
