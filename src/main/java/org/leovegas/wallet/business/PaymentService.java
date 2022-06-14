@@ -16,6 +16,7 @@ import org.leovegas.wallet.service.WalletService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -31,6 +32,7 @@ public class PaymentService {
     private final WalletService walletService;
 
 
+    @Transactional
     public UserDebitResponse debit(UserDebitRequest request)  {
 
         logger.info("PaymentService.debit is called with " + request);
@@ -38,6 +40,7 @@ public class PaymentService {
                 UUID.fromString(request.getTransactionId()), request.getAmount());
     }
 
+    @Transactional
     public UserCreditResponse credit(UserCreditRequest request)  {
 
         logger.info("PaymentService.credit is called with " + request);
@@ -49,7 +52,7 @@ public class PaymentService {
     private TransactionResponse modifyBalance(TransactionType transactionType,
                                               UUID userId, UUID transactionId, BigDecimal amount)  {
 
-        Wallet wallet = walletService.getUserWalletById(userId);
+        Wallet wallet = walletService.getUserWalletForUpdateByUserId(userId);
         Transaction isExistTransaction = transactionService.getByTransactionId(transactionId);
 
         // Idempotency and transaction uniqueness check.

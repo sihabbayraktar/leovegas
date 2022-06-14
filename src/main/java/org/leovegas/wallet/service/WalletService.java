@@ -7,7 +7,6 @@ import org.leovegas.wallet.repository.WalletRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +19,7 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
 
-    @Transactional
+
     public Wallet getUserWalletById(UUID userId) {
         logger.info("WalletService.findByUserId method is called with userId: "+ userId);
         return walletRepository.findByUserId(userId).orElseThrow(() -> new UserNotFoundException("User Id " + userId +" is not found"));
@@ -31,11 +30,15 @@ public class WalletService {
         return walletRepository.findAll();
     }
 
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+
+    public Wallet getUserWalletForUpdateByUserId(UUID userId) {
+        logger.info("WalletService.getForUpdateByUserId method is called with userId: "+ userId);
+        return walletRepository.selectForUpdateByUserId(userId).orElseThrow(() -> new UserNotFoundException("User Id " + userId +" is not found"));
+    }
+
     public void saveWallet(Wallet wallet) {
         logger.info("WalletService.saveWallet method is called");
         walletRepository.save(wallet);
     }
-
 
 }
