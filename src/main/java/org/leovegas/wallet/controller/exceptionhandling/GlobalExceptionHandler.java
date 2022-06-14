@@ -3,7 +3,7 @@ package org.leovegas.wallet.controller.exceptionhandling;
 
 import org.leovegas.wallet.exception.BalanceInsufficientException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -39,10 +39,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return createErrorResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST, request);
     }
 
-    @ExceptionHandler(value = UserNotFoundException.class)
+    @ExceptionHandler(value = WalletNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleUserNotFoundException(Exception e, WebRequest request) {
-        logger.error("Failed to find the User", e);
+    public ResponseEntity<Object> handleWalletNotFoundException(Exception e, WebRequest request) {
+        logger.error("Failed to find the Wallet", e);
         return createErrorResponse(e, e.getMessage(), HttpStatus.NOT_FOUND, request);
     }
 

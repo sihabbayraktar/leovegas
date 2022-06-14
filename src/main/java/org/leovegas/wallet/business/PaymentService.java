@@ -53,7 +53,7 @@ public class PaymentService {
                                               UUID userId, UUID transactionId, BigDecimal amount)  {
 
         Wallet wallet = walletService.getUserWalletForUpdateByUserId(userId);
-        Transaction isExistTransaction = transactionService.getByTransactionId(transactionId);
+        Transaction isExistTransaction = transactionService.getTransactionByTransactionId(transactionId);
 
         // Idempotency and transaction uniqueness check.
         if (isExistTransaction != null) {

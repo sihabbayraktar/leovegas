@@ -21,7 +21,7 @@ public class BalanceService {
 
     public BalanceResponse getUserBalance(BalanceRequest request) {
         logger.info("BalanceService.getUserBalance is called with " + request);
-        return new BalanceResponse(walletService.getUserWalletById(UUID.fromString(request.getUserId())).getBalance());
+        return new BalanceResponse(walletService.getUserWalletByUserId(UUID.fromString(request.getUserId())).getBalance());
     }
 
     public AllBalanceResponse getAllBalance() {

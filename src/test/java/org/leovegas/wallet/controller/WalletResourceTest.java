@@ -2,7 +2,7 @@ package org.leovegas.wallet.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.BalanceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -40,15 +40,15 @@ public class WalletResourceTest {
     }
 
     @Test
-    public void whenUserIsNotExistThenThrowsUserNotFoundException() throws Exception {
+    public void whenUserIsNotExistThenThrowsWalletNotFoundException() throws Exception {
         String userId = UUID.randomUUID().toString();
         BalanceRequest request = new BalanceRequest(userId);
         mockMvc.perform(get("/wallet/userbalance")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException))
-                .andExpect(result -> assertEquals("User Id "+ userId +" is not found", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof WalletNotFoundException))
+                .andExpect(result -> assertEquals("Wallet not found with User Id " + userId, result.getResolvedException().getMessage()));
     }
 
     @Test

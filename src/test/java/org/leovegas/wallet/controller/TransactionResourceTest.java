@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.UserTransactionHistoryRequest;
 import org.leovegas.wallet.service.TransactionService;
 import org.leovegas.wallet.service.WalletService;
@@ -52,13 +52,13 @@ public class TransactionResourceTest {
     @Transactional
     public void insertDummyData() {
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(userId))
+                .wallet(walletService.getUserWalletByUserId(userId))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.CREDIT)
-                .wallet(walletService.getUserWalletById(userId))
+                .wallet(walletService.getUserWalletByUserId(userId))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(userId))
+                .wallet(walletService.getUserWalletByUserId(userId))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
     }
 
@@ -93,15 +93,15 @@ public class TransactionResourceTest {
     }
 
     @Test
-    public void whenUserIsNotExistThenThrowsUserNotFoundException() throws Exception {
+    public void whenUserIsNotExistThenThrowsWalletNotFoundException() throws Exception {
         String userIdNotExist = UUID.randomUUID().toString();
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(userIdNotExist);
         mockMvc.perform(get("/transaction/history")
                 .contentType(APPLICATION_JSON_VALUE)
                 .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException))
-                .andExpect(result -> assertEquals("User Id " + userIdNotExist + " is not found",
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof WalletNotFoundException))
+                .andExpect(result -> assertEquals("Wallet not found with User Id " + userIdNotExist,
                         result.getResolvedException().getMessage()));
     }
 

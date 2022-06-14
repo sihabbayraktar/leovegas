@@ -22,7 +22,7 @@ public class WalletTransactionService {
     public UserTransactionHistoryResponse getUserTransactionHistory(UserTransactionHistoryRequest request) {
         logger.info("TransactionService.getUserTransactionHistory is called with " + request);
         UserTransactionHistoryResponse response = new UserTransactionHistoryResponse();
-        walletService.getUserWalletById(UUID.fromString(request.getUserId())).getTransactionList().stream().forEach(transaction -> {
+        walletService.getUserWalletByUserId(UUID.fromString(request.getUserId())).getTransactionList().stream().forEach(transaction -> {
            response.addTransactionHistory(new TransactionHistory(transaction));
         });
         return response;

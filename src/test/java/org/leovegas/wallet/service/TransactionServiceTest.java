@@ -46,8 +46,8 @@ public class TransactionServiceTest {
 
    @Test
    public void whenTransactionIsCorrectThenReturnTransactionIsCorrect() {
-       when(transactionRepository.findByTransactionId(any())).thenReturn(java.util.Optional.ofNullable(transaction));
-       Transaction transactionById = transactionService.getByTransactionId(transactionId);
+       when(transactionRepository.findTransactionByTransactionId(any())).thenReturn(java.util.Optional.ofNullable(transaction));
+       Transaction transactionById = transactionService.getTransactionByTransactionId(transactionId);
        assertAll(
                () -> assertNotNull(transactionById),
                () -> assertEquals(transactionById.getAmount(), transaction.getAmount()),

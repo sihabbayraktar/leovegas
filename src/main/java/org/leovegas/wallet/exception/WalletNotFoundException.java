@@ -3,9 +3,9 @@ package org.leovegas.wallet.exception;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class UserNotFoundException extends RuntimeException {
+public class WalletNotFoundException extends RuntimeException {
 
-    public UserNotFoundException(String message) {
+    public WalletNotFoundException(String message) {
         super(message);
     }
 }

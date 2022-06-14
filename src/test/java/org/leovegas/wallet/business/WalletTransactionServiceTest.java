@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.dto.TransactionHistory;
 import org.leovegas.wallet.model.request.UserTransactionHistoryRequest;
 import org.leovegas.wallet.model.response.UserTransactionHistoryResponse;
@@ -52,7 +52,7 @@ public class WalletTransactionServiceTest {
 
     @Test
     public void whenUserTransactionIsExistThenReturnCorrectTransaction() {
-        when(walletService.getUserWalletById(any())).thenReturn(wallet);
+        when(walletService.getUserWalletByUserId(any())).thenReturn(wallet);
         UserTransactionHistoryResponse response = walletTransactionService.getUserTransactionHistory(request);
         assertAll(
                 () -> assertNotNull(response),
@@ -65,9 +65,9 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
-    public void whenUserNotFoundThenThrowsUserNotFoundException() {
-        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
-        assertThrows(UserNotFoundException.class, () -> walletTransactionService.getUserTransactionHistory(request));
+    public void whenUserNotFoundThenThrowsWalletNotFoundException() {
+        when(walletService.getUserWalletByUserId(any())).thenThrow(WalletNotFoundException.class);
+        assertThrows(WalletNotFoundException.class, () -> walletTransactionService.getUserTransactionHistory(request));
     }
 
 

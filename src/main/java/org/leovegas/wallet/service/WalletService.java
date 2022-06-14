@@ -2,7 +2,7 @@ package org.leovegas.wallet.service;
 
 import lombok.RequiredArgsConstructor;
 import org.leovegas.wallet.entity.Wallet;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.repository.WalletRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +20,9 @@ public class WalletService {
     private final WalletRepository walletRepository;
 
 
-    public Wallet getUserWalletById(UUID userId) {
-        logger.info("WalletService.findByUserId method is called with userId: "+ userId);
-        return walletRepository.findByUserId(userId).orElseThrow(() -> new UserNotFoundException("User Id " + userId +" is not found"));
+    public Wallet getUserWalletByUserId(UUID userId) {
+        logger.info("WalletService.getUserWalletByUserId method is called with userId: "+ userId);
+        return walletRepository.findWalletByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found with User Id " + userId));
     }
 
     public List<Wallet> getAllWallets() {
@@ -32,8 +32,8 @@ public class WalletService {
 
 
     public Wallet getUserWalletForUpdateByUserId(UUID userId) {
-        logger.info("WalletService.getForUpdateByUserId method is called with userId: "+ userId);
-        return walletRepository.selectForUpdateByUserId(userId).orElseThrow(() -> new UserNotFoundException("User Id " + userId +" is not found"));
+        logger.info("WalletService.getUserWalletForUpdateByUserId method is called with userId: "+ userId);
+        return walletRepository.findWalletForUpdateByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found with User Id " + userId));
     }
 
     public void saveWallet(Wallet wallet) {

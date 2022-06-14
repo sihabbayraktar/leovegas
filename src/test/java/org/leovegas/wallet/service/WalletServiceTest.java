@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.repository.WalletRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -50,16 +50,24 @@ public class WalletServiceTest {
 
     @Test
     public void whenWalletsUserIsExistThenReturnBalanceIsCorrect() {
-        when(walletRepository.findByUserId(any())).thenReturn(Optional.ofNullable(wallet));
-        Wallet userWalletById = walletService.getUserWalletById(userId);
+        when(walletRepository.findWalletByUserId(any())).thenReturn(Optional.ofNullable(wallet));
+        Wallet userWalletById = walletService.getUserWalletByUserId(userId);
         assertAll(() -> assertNotNull(userWalletById),
         () -> assertEquals(wallet.getBalance(), userWalletById.getBalance()));
     }
 
     @Test
-    public void whenUserIsNotFoundThenThrowsUserNotFoundException() {
-        when(walletRepository.findByUserId(any())).thenReturn(Optional.empty());
-        assertThrows(UserNotFoundException.class, ()->walletService.getUserWalletById(userId));
+    public void whenWalletIsNotFoundThenThrowsWalletNotFoundException() {
+        when(walletRepository.findWalletByUserId(any())).thenReturn(Optional.empty());
+        assertThrows(WalletNotFoundException.class, ()-> walletService.getUserWalletByUserId(userId));
+    }
+
+    @Test
+    public void whenWalletsUserIsExistWithLockThenReturnBalanceIsCorrect() {
+        when(walletRepository.findWalletForUpdateByUserId(any())).thenReturn(Optional.ofNullable(wallet));
+        Wallet userWalletById = walletService.getUserWalletForUpdateByUserId(userId);
+        assertAll(() -> assertNotNull(userWalletById),
+                () -> assertEquals(wallet.getBalance(), userWalletById.getBalance()));
     }
 
     @Test

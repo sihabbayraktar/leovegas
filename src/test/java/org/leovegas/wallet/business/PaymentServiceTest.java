@@ -6,7 +6,7 @@ import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
 import org.leovegas.wallet.model.request.UserDebitRequest;
 import org.leovegas.wallet.model.response.UserCreditResponse;
@@ -64,7 +64,7 @@ public class PaymentServiceTest {
 
     @Test
     public void whenDebitIsCorrectThenReturnBalanceIsCorrect() {
-        when(walletService.getUserWalletById(any())).thenReturn(wallet);
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(wallet);
         UserDebitResponse response = paymentService.debit(debitRequest);
         assertAll(
                 () -> assertNotNull(response),
@@ -75,20 +75,20 @@ public class PaymentServiceTest {
 
     @Test
     public void whenDebitTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
-        when(walletService.getUserWalletById(any())).thenReturn(createWalletForNonUniqueTransaction());
-        when(transactionService.getByTransactionId(any())).thenReturn(debitTransaction);
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(createWalletForNonUniqueTransaction());
+        when(transactionService.getTransactionByTransactionId(any())).thenReturn(debitTransaction);
         assertThrows(NonUniqueTransactionException.class, () -> paymentService.debit(debitRequest));
     }
 
     @Test
-    public void whenDebitUserIsNotFoundThenThrowsUserNotFoundException() {
-        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
-        assertThrows(UserNotFoundException.class, () ->paymentService.debit(debitRequest));
+    public void whenDebitUserIsNotFoundThenThrowsWalletNotFoundException() {
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenThrow(WalletNotFoundException.class);
+        assertThrows(WalletNotFoundException.class, () ->paymentService.debit(debitRequest));
     }
 
     @Test
     public void whenCreditIsCorrectThenReturnBalanceIsCorrect() {
-        when(walletService.getUserWalletById(any())).thenReturn(wallet);
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(wallet);
         UserCreditResponse response = paymentService.credit(creditRequest);
         assertAll(
                 () -> assertNotNull(response),
@@ -97,15 +97,15 @@ public class PaymentServiceTest {
 
     @Test
     public void whenCreditTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
-        when(walletService.getUserWalletById(any())).thenReturn(createWalletForNonUniqueTransaction());
-        when(transactionService.getByTransactionId(any())).thenReturn(creditTransaction);
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(createWalletForNonUniqueTransaction());
+        when(transactionService.getTransactionByTransactionId(any())).thenReturn(creditTransaction);
         assertThrows(NonUniqueTransactionException.class, () -> paymentService.credit(creditRequest));
     }
 
     @Test
-    public void whenCreditUserIsNotFoundThenThrowsUserNotFoundException() {
-        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
-        assertThrows(UserNotFoundException.class, () -> paymentService.credit(creditRequest));
+    public void whenCreditUserIsNotFoundThenThrowsWalletNotFoundException() {
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenThrow(WalletNotFoundException.class);
+        assertThrows(WalletNotFoundException.class, () -> paymentService.credit(creditRequest));
     }
 
     private Wallet createWalletForNonUniqueTransaction() {

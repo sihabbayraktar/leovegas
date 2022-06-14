@@ -3,7 +3,7 @@ package org.leovegas.wallet.business;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.leovegas.wallet.entity.Wallet;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.BalanceRequest;
 import org.leovegas.wallet.model.response.AllBalanceResponse;
 import org.leovegas.wallet.model.response.BalanceResponse;
@@ -42,7 +42,7 @@ public class BalanceServiceTest {
 
     @Test
     public void whenBalanceIsCorrectThenReturnBalanceIsCorrect() {
-        when(walletService.getUserWalletById(any())).thenReturn(wallet);
+        when(walletService.getUserWalletByUserId(any())).thenReturn(wallet);
         BalanceResponse response = balanceService.getUserBalance(request);
         assertAll(
                 () -> assertNotNull(response),
@@ -61,9 +61,9 @@ public class BalanceServiceTest {
     }
 
     @Test
-    public void whenUserNotFoundThenThrowsUserNotFoundException() {
-        when(walletService.getUserWalletById(any())).thenThrow(UserNotFoundException.class);
-        assertThrows(UserNotFoundException.class, () -> balanceService.getUserBalance(request));
+    public void whenUserNotFoundThenThrowsWalletNotFoundException() {
+        when(walletService.getUserWalletByUserId(any())).thenThrow(WalletNotFoundException.class);
+        assertThrows(WalletNotFoundException.class, () -> balanceService.getUserBalance(request));
     }
 
 

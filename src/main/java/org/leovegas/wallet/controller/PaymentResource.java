@@ -3,7 +3,7 @@ package org.leovegas.wallet.controller;
 import lombok.RequiredArgsConstructor;
 import org.leovegas.wallet.business.PaymentService;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
-import org.leovegas.wallet.exception.UserNotFoundException;
+import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
 import org.leovegas.wallet.model.request.UserDebitRequest;
 import org.leovegas.wallet.model.response.UserCreditResponse;
@@ -35,7 +35,7 @@ public class PaymentResource {
 
     @PutMapping(value = "/credit", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserCreditResponse> creditUser(
-            @Valid @RequestBody UserCreditRequest request) throws NonUniqueTransactionException, UserNotFoundException {
+            @Valid @RequestBody UserCreditRequest request) throws NonUniqueTransactionException, WalletNotFoundException {
         logger.info("PaymentController.creditUser is called with " + request);
         return new ResponseEntity<>(paymentService.credit(request), HttpStatus.OK);
     }

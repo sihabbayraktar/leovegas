@@ -17,11 +17,10 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
 
-    public Transaction getByTransactionId(UUID transactionId) {
+    public Transaction getTransactionByTransactionId(UUID transactionId) {
         logger.info("TransactionService.getTransactionById method is called with transactionId: "+ transactionId);
-        return transactionRepository.findByTransactionId(transactionId).orElse(null);
+        return transactionRepository.findTransactionByTransactionId(transactionId).orElse(null);
     }
-
 
     public void saveTransaction(Transaction transaction) {
         logger.info("TransactionService.saveTransaction method is called");

@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    Optional<Transaction> findByTransactionId(UUID transactionId);
+    Optional<Transaction> findTransactionByTransactionId(UUID transactionId);
 
 }

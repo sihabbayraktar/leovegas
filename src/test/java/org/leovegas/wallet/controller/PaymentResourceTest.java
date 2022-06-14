@@ -52,13 +52,13 @@ public class PaymentResourceTest {
     public void insertDummyData() {
 
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.CREDIT)
-                .wallet(walletService.getUserWalletById(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
+                .wallet(walletService.getUserWalletByUserId(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date())
                 .transactionId(UUID.fromString("176f9994-ec20-11ec-8ea0-0242ac120002")).build());
 
 
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletById(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
+                .wallet(walletService.getUserWalletByUserId(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date())
                 .transactionId(UUID.fromString("2d1ef8d4-ec20-11ec-8ea0-0242ac120002")).build());
 
