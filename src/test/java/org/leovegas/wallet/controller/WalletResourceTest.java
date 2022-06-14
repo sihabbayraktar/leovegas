@@ -30,7 +30,7 @@ public class WalletResourceTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void whenUserWalletIsExistThenReturnExpectedBalanceIsCorrect() throws Exception {
+    public void whenWalletIsExistThenReturnExpectedBalanceIsCorrect() throws Exception {
         BalanceRequest request = new BalanceRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c");
         mockMvc.perform(get("/wallet/userbalance")
         .contentType(APPLICATION_JSON_VALUE)
@@ -40,7 +40,7 @@ public class WalletResourceTest {
     }
 
     @Test
-    public void whenUserIsNotExistThenThrowsWalletNotFoundException() throws Exception {
+    public void whenWalletIsNotExistThenThrowsWalletNotFoundException() throws Exception {
         String userId = UUID.randomUUID().toString();
         BalanceRequest request = new BalanceRequest(userId);
         mockMvc.perform(get("/wallet/userbalance")

@@ -81,7 +81,7 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void whenDebitUserIsNotFoundThenThrowsWalletNotFoundException() {
+    public void whenDebitWalletIsNotFoundThenThrowsWalletNotFoundException() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () ->paymentService.debit(debitRequest));
     }
@@ -103,7 +103,7 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void whenCreditUserIsNotFoundThenThrowsWalletNotFoundException() {
+    public void whenCreditWalletIsNotFoundThenThrowsWalletNotFoundException() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () -> paymentService.credit(creditRequest));
     }

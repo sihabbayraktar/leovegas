@@ -61,7 +61,7 @@ public class BalanceServiceTest {
     }
 
     @Test
-    public void whenUserNotFoundThenThrowsWalletNotFoundException() {
+    public void whenWalletNotFoundThenThrowsWalletNotFoundException() {
         when(walletService.getUserWalletByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () -> balanceService.getUserBalance(request));
     }

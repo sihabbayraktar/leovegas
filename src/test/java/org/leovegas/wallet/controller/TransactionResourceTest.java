@@ -81,7 +81,7 @@ public class TransactionResourceTest {
     }
 
     @Test
-    public void whenUserExistButTransactionOfThatUserIsNotExistReturnEmptyTransactionList() throws Exception {
+    public void whenWalletExistButTransactionOfThatUserIsNotExistReturnEmptyTransactionList() throws Exception {
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("0ff4ca58-ec0d-11ec-8ea0-0242ac120002");
 
         mockMvc.perform(get("/transaction/history")
@@ -93,7 +93,7 @@ public class TransactionResourceTest {
     }
 
     @Test
-    public void whenUserIsNotExistThenThrowsWalletNotFoundException() throws Exception {
+    public void whenWalletIsNotExistThenThrowsWalletNotFoundException() throws Exception {
         String userIdNotExist = UUID.randomUUID().toString();
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(userIdNotExist);
         mockMvc.perform(get("/transaction/history")

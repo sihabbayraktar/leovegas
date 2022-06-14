@@ -49,7 +49,7 @@ public class WalletServiceTest {
     }
 
     @Test
-    public void whenWalletsUserIsExistThenReturnBalanceIsCorrect() {
+    public void whenWalletIsExistThenReturnBalanceIsCorrect() {
         when(walletRepository.findWalletByUserId(any())).thenReturn(Optional.ofNullable(wallet));
         Wallet userWalletById = walletService.getUserWalletByUserId(userId);
         assertAll(() -> assertNotNull(userWalletById),
@@ -63,7 +63,7 @@ public class WalletServiceTest {
     }
 
     @Test
-    public void whenWalletsUserIsExistWithLockThenReturnBalanceIsCorrect() {
+    public void whenWalletIsExistWithLockThenReturnBalanceIsCorrect() {
         when(walletRepository.findWalletForUpdateByUserId(any())).thenReturn(Optional.ofNullable(wallet));
         Wallet userWalletById = walletService.getUserWalletForUpdateByUserId(userId);
         assertAll(() -> assertNotNull(userWalletById),

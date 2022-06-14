@@ -65,7 +65,7 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
-    public void whenUserNotFoundThenThrowsWalletNotFoundException() {
+    public void whenWalletNotFoundThenThrowsWalletNotFoundException() {
         when(walletService.getUserWalletByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () -> walletTransactionService.getUserTransactionHistory(request));
     }
