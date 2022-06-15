@@ -12,6 +12,7 @@ Technologies:
   * Spring Security
   * H2
   * Lombok
+  * Swagger
 
 ## RUN
 1. Clone the repository.
@@ -21,6 +22,8 @@ Technologies:
 
 
 ## Example Request and Response
+
+Swagger link: [link](http://localhost:8080/swagger-ui/index.html)
 
 1. User Balance Check [link](http://localhost:8080/wallet/userbalance)
 ```
