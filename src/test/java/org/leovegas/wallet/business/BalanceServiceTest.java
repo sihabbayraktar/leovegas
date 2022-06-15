@@ -8,6 +8,7 @@ import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.BalanceRequest;
 import org.leovegas.wallet.model.response.AllBalanceResponse;
 import org.leovegas.wallet.model.response.BalanceResponse;
+import org.leovegas.wallet.service.UserService;
 import org.leovegas.wallet.service.WalletService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,16 +20,21 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.eq;
 
 @SpringBootTest
 public class BalanceServiceTest {
 
+    @InjectMocks
+    private BalanceService balanceService;
+
     @Mock
     private WalletService walletService;
 
-    @InjectMocks
-    private BalanceService balanceService;
+    @Mock
+    private UserService userService;
 
     private Wallet wallet;
 
@@ -44,6 +50,7 @@ public class BalanceServiceTest {
     public void whenBalanceIsCorrectThenReturnBalanceIsCorrect() {
         when(walletService.getUserWalletByUserId(any())).thenReturn(wallet);
         BalanceRequest request = new BalanceRequest("07344d08-ec0d-11ec-8ea0-0242ac120002");
+        doThrow(AuthorizationException.class).when(userService).checkUserIsAccessingAnotherUserBalance(not(eq(request.getUserId())));
         BalanceResponse response = balanceService.getUserBalance(request);
         assertAll(
                 () -> assertNotNull(response),
@@ -53,8 +60,9 @@ public class BalanceServiceTest {
     @Test
     @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenBalanceIsCorrectAndUserTryToAccessAnotherUserBalanceThenThrowAuthorizationException() {
-        when(walletService.getUserWalletByUserId(any())).thenReturn(wallet);
+
         BalanceRequest request = new BalanceRequest("07344d08-ec0d-11ec-8ea0-0242ac120002");
+        doThrow(AuthorizationException.class).when(userService).checkUserIsAccessingAnotherUserBalance(eq(request.getUserId()));
         assertThrows(AuthorizationException.class, () -> balanceService.getUserBalance(request));
     }
 

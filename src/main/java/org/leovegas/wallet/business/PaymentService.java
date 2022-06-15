@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
-import org.leovegas.wallet.exception.AuthorizationException;
 import org.leovegas.wallet.exception.BalanceInsufficientException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
@@ -13,10 +12,10 @@ import org.leovegas.wallet.model.response.TransactionResponse;
 import org.leovegas.wallet.model.response.UserCreditResponse;
 import org.leovegas.wallet.model.response.UserDebitResponse;
 import org.leovegas.wallet.service.TransactionService;
+import org.leovegas.wallet.service.UserService;
 import org.leovegas.wallet.service.WalletService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +31,7 @@ public class PaymentService {
 
     private final TransactionService transactionService;
     private final WalletService walletService;
+    private final UserService userService;
 
 
     @Transactional
@@ -54,9 +54,7 @@ public class PaymentService {
     private TransactionResponse modifyBalance(TransactionType transactionType,
                                               UUID userId, UUID transactionId, BigDecimal amount)  {
 
-        if(!SecurityContextHolder.getContext().getAuthentication().getName().equals(userId.toString())) {
-            throw new AuthorizationException("Not allowed to make change");
-        }
+        userService.checkUserIsMakingTransactionForAnotherUser(userId.toString());
         Wallet wallet = walletService.getUserWalletForUpdateByUserId(userId);
 
         Transaction isExistTransaction = transactionService.getTransactionByTransactionId(transactionId);
@@ -115,6 +113,4 @@ public class PaymentService {
         transactionService.saveTransaction(transaction);
         logger.info("transaction is saved");
     }
-
-
 }
