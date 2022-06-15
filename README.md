@@ -9,6 +9,7 @@ Technologies:
   * Spring Boot 2.7.0
   * Spring Data JPA
   * Spring Web
+  * Spring Security
   * H2
   * Lombok
 
