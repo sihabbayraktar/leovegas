@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
+import org.leovegas.wallet.exception.AuthorizationException;
 import org.leovegas.wallet.exception.BalanceInsufficientException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
@@ -15,6 +16,7 @@ import org.leovegas.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +30,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,6 +47,7 @@ public class PaymentResourceTest {
 
     @Autowired
     private WalletService walletService;
+
 
     @BeforeAll
     @Transactional
@@ -66,6 +68,7 @@ public class PaymentResourceTest {
 
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenDebitMoneyThenReturnSuccessAndExpectedBalanceIsCorrect() throws Exception {
 
         UserDebitRequest request = new UserDebitRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c",
@@ -79,6 +82,7 @@ public class PaymentResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenCreditMoneyThenReturnSuccessAndExpectedBalanceIsCorrect() throws Exception {
 
         UserCreditRequest request = new UserCreditRequest("07344d08-ec0d-11ec-8ea0-0242ac120002",
@@ -92,6 +96,7 @@ public class PaymentResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenCreditMoneyHasNoUniqueTransactionIdThenThrowsNonUniqueTransactionException() throws Exception {
 
         UserCreditRequest request = new UserCreditRequest("07344d08-ec0d-11ec-8ea0-0242ac120002",
@@ -108,6 +113,7 @@ public class PaymentResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenDebitMoneyHasNoUniqueTransactionIdThenThrowsNonUniqueTransactionException() throws Exception {
 
         UserCreditRequest request = new UserCreditRequest("07344d08-ec0d-11ec-8ea0-0242ac120002",
@@ -124,6 +130,7 @@ public class PaymentResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenDebitMoneyBalanceIsNotSuffucientThenThrowsBalanceInsufficientException() throws Exception {
 
         UserDebitRequest request = new UserDebitRequest("07344d08-ec0d-11ec-8ea0-0242ac120002",
@@ -139,6 +146,40 @@ public class PaymentResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
+    public void whenDebitMoneyUserAccessTheOtherWalletThanThrowsAuthorizationException() throws Exception {
+
+        UserDebitRequest request = new UserDebitRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c",
+                BigDecimal.valueOf(1), UUID.randomUUID().toString());
+        mockMvc.perform(put("/payment/debit")
+                .contentType(APPLICATION_JSON_VALUE)
+                .accept(APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AuthorizationException))
+                .andExpect(result -> assertEquals("Not allowed to make change", result.getResolvedException().getMessage()));
+
+    }
+
+    @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
+    public void whenCreditMoneyUserAccessTheOtherWalletThanThrowsAuthorizationException() throws Exception {
+
+        UserCreditRequest request = new UserCreditRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c",
+                BigDecimal.valueOf(1), UUID.randomUUID().toString());
+        mockMvc.perform(put("/payment/credit")
+                .contentType(APPLICATION_JSON_VALUE)
+                .accept(APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AuthorizationException))
+                .andExpect(result -> assertEquals("Not allowed to make change", result.getResolvedException().getMessage()));
+
+    }
+
+
+    @Test
+    @WithMockUser(username = "0ff4ca58-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenCreditOrDebitRequestIsNotInWantedFormThenGiveValidityError() throws Exception {
 
         UserDebitRequest request = new UserDebitRequest();

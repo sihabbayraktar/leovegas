@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
+import org.leovegas.wallet.exception.AuthorizationException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
 import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.UserCreditRequest;
@@ -16,6 +17,7 @@ import org.leovegas.wallet.service.WalletService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -45,7 +47,7 @@ public class PaymentServiceTest {
     @BeforeEach
     public void setup() {
 
-        UUID userId = UUID.randomUUID();
+        UUID userId = UUID.fromString("5fc03087-d265-11e7-b8c6-83e29cd24f4c");
         debitRequest = new UserDebitRequest(userId.toString(), BigDecimal.valueOf(100L), UUID.randomUUID().toString());
         creditRequest = new UserCreditRequest(userId.toString(), BigDecimal.valueOf(100L), UUID.randomUUID().toString());
 
@@ -63,6 +65,7 @@ public class PaymentServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenDebitIsCorrectThenReturnBalanceIsCorrect() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(wallet);
         UserDebitResponse response = paymentService.debit(debitRequest);
@@ -74,6 +77,7 @@ public class PaymentServiceTest {
 
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenDebitTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(createWalletForNonUniqueTransaction());
         when(transactionService.getTransactionByTransactionId(any())).thenReturn(debitTransaction);
@@ -81,12 +85,21 @@ public class PaymentServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenDebitWalletIsNotFoundThenThrowsWalletNotFoundException() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () ->paymentService.debit(debitRequest));
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
+    public void whenDebitIsTriedByAnotherUserThenThrowsAuthorizationException() {
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(wallet);
+        assertThrows(AuthorizationException.class, () -> paymentService.debit(debitRequest));
+    }
+
+    @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenCreditIsCorrectThenReturnBalanceIsCorrect() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(wallet);
         UserCreditResponse response = paymentService.credit(creditRequest);
@@ -96,6 +109,7 @@ public class PaymentServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenCreditTransactionIsNotUniqueThenThrowsNonUniqueTransactionException() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(createWalletForNonUniqueTransaction());
         when(transactionService.getTransactionByTransactionId(any())).thenReturn(creditTransaction);
@@ -103,9 +117,17 @@ public class PaymentServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenCreditWalletIsNotFoundThenThrowsWalletNotFoundException() {
         when(walletService.getUserWalletForUpdateByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () -> paymentService.credit(creditRequest));
+    }
+
+    @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
+    public void whenCreditIsTriedByAnotherUserThenThrowsAuthorizationException() {
+        when(walletService.getUserWalletForUpdateByUserId(any())).thenReturn(wallet);
+        assertThrows(AuthorizationException.class, () -> paymentService.credit(creditRequest));
     }
 
     private Wallet createWalletForNonUniqueTransaction() {
@@ -113,6 +135,5 @@ public class PaymentServiceTest {
         wallet.setId(2L);
         return walletForNonUniqueTransaction;
     }
-
 
 }

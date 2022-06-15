@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
+import org.leovegas.wallet.exception.AuthorizationException;
 import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.request.UserTransactionHistoryRequest;
 import org.leovegas.wallet.service.TransactionService;
@@ -14,6 +15,7 @@ import org.leovegas.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,25 +48,25 @@ public class TransactionResourceTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private UUID userId = UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002");
 
     @BeforeAll
     @Transactional
     public void insertDummyData() {
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletByUserId(userId))
+                .wallet(walletService.getUserWalletByUserId(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.CREDIT)
-                .wallet(walletService.getUserWalletByUserId(userId))
+                .wallet(walletService.getUserWalletByUserId(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
         transactionService.saveTransaction(Transaction.builder().transactionType(TransactionType.DEBIT)
-                .wallet(walletService.getUserWalletByUserId(userId))
+                .wallet(walletService.getUserWalletByUserId(UUID.fromString("1490427c-ec0d-11ec-8ea0-0242ac120002")))
                 .amount(BigDecimal.valueOf(100L)).transactionTime(new Date()).transactionId(UUID.randomUUID()).build());
     }
 
     @Test
+    @WithMockUser(username = "1490427c-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenTransactionHistoryOfUserExistThenReturnSuccessAndExpectedResultIsCorrect() throws Exception {
-        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(userId.toString());
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("1490427c-ec0d-11ec-8ea0-0242ac120002");
 
         mockMvc.perform(get("/transaction/history")
         .contentType(APPLICATION_JSON_VALUE)
@@ -81,6 +83,7 @@ public class TransactionResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "0ff4ca58-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenWalletExistButTransactionOfThatUserIsNotExistReturnEmptyTransactionList() throws Exception {
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("0ff4ca58-ec0d-11ec-8ea0-0242ac120002");
 
@@ -93,6 +96,7 @@ public class TransactionResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "ADMIN", password = "adminpass", roles = {"ADMIN"})
     public void whenWalletIsNotExistThenThrowsWalletNotFoundException() throws Exception {
         String userIdNotExist = UUID.randomUUID().toString();
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest(userIdNotExist);
@@ -106,6 +110,21 @@ public class TransactionResourceTest {
     }
 
     @Test
+    @WithMockUser(username = "0ff4ca58-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
+    public void whenUserIsTryToSeeNotAuthorizedTransactionThenThrowsAuthorizationException() throws Exception {
+
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("07344d08-ec0d-11ec-8ea0-0242ac120002");
+        mockMvc.perform(get("/transaction/history")
+                .contentType(APPLICATION_JSON_VALUE)
+                .accept(APPLICATION_JSON_VALUE).content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AuthorizationException))
+                .andExpect(result -> assertEquals("Not allowed to see transaction history",
+                        result.getResolvedException().getMessage()));
+    }
+
+    @Test
+    @WithMockUser(username = "0ff4ca58-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
     public void whenUserTransactionHistoryRequestIsNotInWantedFormThenThrowsValidityError() throws Exception {
         UserTransactionHistoryRequest request = new UserTransactionHistoryRequest();
         mockMvc.perform(get("/transaction/history")

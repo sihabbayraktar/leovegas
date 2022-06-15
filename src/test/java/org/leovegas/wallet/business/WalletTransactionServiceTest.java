@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.leovegas.wallet.entity.Transaction;
 import org.leovegas.wallet.entity.TransactionType;
 import org.leovegas.wallet.entity.Wallet;
+import org.leovegas.wallet.exception.AuthorizationException;
 import org.leovegas.wallet.exception.WalletNotFoundException;
 import org.leovegas.wallet.model.dto.TransactionHistory;
 import org.leovegas.wallet.model.request.UserTransactionHistoryRequest;
@@ -13,6 +14,7 @@ import org.leovegas.wallet.service.WalletService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -39,7 +41,7 @@ public class WalletTransactionServiceTest {
 
     @BeforeEach
     public void setup() {
-        request = new UserTransactionHistoryRequest(UUID.randomUUID().toString());
+
         transactionHistory = new TransactionHistory(TransactionType.CREDIT.name(), BigDecimal.valueOf(100L), new Date(1385355600000L));
         wallet = new Wallet();
 
@@ -51,7 +53,9 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenUserTransactionIsExistThenReturnCorrectTransaction() {
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c");
         when(walletService.getUserWalletByUserId(any())).thenReturn(wallet);
         UserTransactionHistoryResponse response = walletTransactionService.getUserTransactionHistory(request);
         assertAll(
@@ -65,7 +69,17 @@ public class WalletTransactionServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "07344d08-ec0d-11ec-8ea0-0242ac120002", password = "userpass", roles = {"USER"})
+    public void whenUserTransactionIsExistAndUserTryToAccessAnotherUserTransactionThenThrowsAuthorizationException() {
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c");
+        when(walletService.getUserWalletByUserId(any())).thenReturn(wallet);
+        assertThrows(AuthorizationException.class, () -> walletTransactionService.getUserTransactionHistory(request));
+    }
+
+    @Test
+    @WithMockUser(username = "5fc03087-d265-11e7-b8c6-83e29cd24f4c", password = "userpass", roles = {"USER"})
     public void whenWalletNotFoundThenThrowsWalletNotFoundException() {
+        UserTransactionHistoryRequest request = new UserTransactionHistoryRequest("5fc03087-d265-11e7-b8c6-83e29cd24f4c");
         when(walletService.getUserWalletByUserId(any())).thenThrow(WalletNotFoundException.class);
         assertThrows(WalletNotFoundException.class, () -> walletTransactionService.getUserTransactionHistory(request));
     }

@@ -1,6 +1,7 @@
 package org.leovegas.wallet.controller.exceptionhandling;
 
 
+import org.leovegas.wallet.exception.AuthorizationException;
 import org.leovegas.wallet.exception.BalanceInsufficientException;
 import org.leovegas.wallet.exception.NonUniqueTransactionException;
 import org.leovegas.wallet.exception.WalletNotFoundException;
@@ -53,6 +54,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return createErrorResponse(e, "Unknown error captured", HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
+    @ExceptionHandler(value = AuthorizationException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<Object> handleAuthorizationException(Exception e, WebRequest request) {
+        logger.error("Failed to progress due to security reasons", e);
+        return createErrorResponse(e, e.getMessage(), HttpStatus.FORBIDDEN, request);
+    }
 
     @Override
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
